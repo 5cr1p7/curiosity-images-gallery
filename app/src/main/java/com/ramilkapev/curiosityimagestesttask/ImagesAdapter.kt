@@ -10,9 +10,11 @@ import androidx.annotation.NonNull
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
+import com.google.android.flexbox.FlexboxLayoutManager
 import com.stfalcon.imageviewer.StfalconImageViewer
 
-class ImagesAdapter(private val context: Context, private val imagesList: MutableList<String>):
+class ImagesAdapter(private val context: Context,
+                    private val imagesList: MutableList<String>):
     RecyclerView.Adapter<ImagesAdapter.ViewHolder>() {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ImagesAdapter.ViewHolder {
@@ -23,21 +25,23 @@ class ImagesAdapter(private val context: Context, private val imagesList: Mutabl
     }
 
     override fun onBindViewHolder(holder: ImagesAdapter.ViewHolder, position: Int) {
-        holder.bindImages(imagesList[position])
+        holder.bindImages(imagesList[position], position + 1)
         Log.d("asdada1", imagesList.size.toString())
         Log.d("asdada", imagesList[position])
-
     }
 
     override fun getItemCount() = imagesList.size
 
     inner class ViewHolder(@NonNull itemView: View): RecyclerView.ViewHolder(itemView) {
         private val imageView: ImageView = itemView.findViewById(R.id.iv_image_item)
-        fun bindImages(imageUrl: String) {
+        fun bindImages(imageUrl: String, position: Int) {
             Glide.with(itemView).load(imageUrl).placeholder(R.drawable.placeholder)
                 .transition(DrawableTransitionOptions.withCrossFade())
-                .centerCrop()
                 .into(imageView)
+            val lp = imageView.layoutParams
+            if (lp is FlexboxLayoutManager.LayoutParams) {
+                lp.flexGrow = 1f
+            }
 
             imageView.setOnClickListener {
                 StfalconImageViewer.Builder(context, imagesList) { imageView, imageUrl ->
@@ -50,9 +54,8 @@ class ImagesAdapter(private val context: Context, private val imagesList: Mutabl
                     .show()
             }
             imageView.setOnLongClickListener {
-//                imagesList.removeAt(adapterPosition)
+                DBHelper(context, null).deleteImage(position)
                 deleteItem(adapterPosition)
-                DBHelper(context, null).deleteImage(adapterPosition)
                 Log.d("asd2", imagesList.size.toString())
                 Log.d("asd21", imagesList.toString())
                 return@setOnLongClickListener true

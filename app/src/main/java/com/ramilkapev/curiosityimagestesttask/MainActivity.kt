@@ -1,11 +1,12 @@
 package com.ramilkapev.curiosityimagestesttask
 
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
-import androidx.recyclerview.widget.GridLayoutManager
+import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.flexbox.*
 import com.ramilkapev.curiosityimagestesttask.Http.HttpHandler
+
 
 class MainActivity : AppCompatActivity() {
 
@@ -21,32 +22,35 @@ class MainActivity : AppCompatActivity() {
         httpHandler.apiRequest(dbHelper)
         val cursor = dbHelper.getAllImages()
 
-//        imageUrlList.clear()
-        Log.d("asd33", cursor!!.moveToFirst().toString())
-        Log.d("asd33listempty", imageUrlList.isEmpty().toString())
-
-        cursor.moveToFirst()
-        if (cursor!!.moveToFirst()) {
+        cursor!!.moveToFirst()
             while (cursor.moveToNext()) {
                 val values = cursor.getString(cursor.getColumnIndex(DBHelper.COLUMN_IMAGES))
                 imageUrlList.add(values)
             }
-        }
+        Log.d("asdmaincurs", imageUrlList.size.toString())
         cursor.close()
         dbHelper.close()
 
         val recyclerView: RecyclerView = findViewById(R.id.rv_images)
 
-        val gridLayoutManager = GridLayoutManager(this, 2)
-        recyclerView.layoutManager = gridLayoutManager
+        val flexLayoutManager = FlexboxLayoutManager(this).apply {
+            flexWrap = FlexWrap.WRAP
+            flexDirection = FlexDirection.ROW
+            alignItems = AlignItems.STRETCH
+        }
 
-        val adapter = ImagesAdapter(this, imageUrlList)
-        recyclerView.adapter = adapter
+        val flexAdapter = ImagesAdapter(this, imageUrlList)
+        recyclerView.apply {
+            setHasFixedSize(true)
+            layoutManager = flexLayoutManager
+            adapter = flexAdapter
+        }
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
         outState.putStringArrayList("imagesList", imageUrlList)
+
     }
 
     override fun onRestoreInstanceState(savedInstanceState: Bundle) {

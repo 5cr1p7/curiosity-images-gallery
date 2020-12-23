@@ -13,8 +13,9 @@ class DBHelper(context: Context, factory: SQLiteDatabase.CursorFactory?) :
     override fun onCreate(db: SQLiteDatabase) {
         val createImagesTable = ("CREATE TABLE " +
                 TABLE_IMAGES + "("
-                + COLUMN_ID + " INTEGER PRIMARY KEY," +
-                COLUMN_IMAGES
+                + COLUMN_ID + " INTEGER PRIMARY KEY AUTOINCREMENT UNIQUE,"
+                + COLUMN_UNIQUE_IMAGE_ID + " INTEGER UNIQUE,"
+                + COLUMN_IMAGES
                 + " TEXT" + ")")
         db.execSQL(createImagesTable)
     }
@@ -29,20 +30,16 @@ class DBHelper(context: Context, factory: SQLiteDatabase.CursorFactory?) :
     fun addImage(model: ImagesModel) {
         val values = ContentValues()
         values.put(COLUMN_IMAGES, model.download_url)
+        values.put(COLUMN_UNIQUE_IMAGE_ID, model.id)
+//        values.put(COLUMN_ID, pos)
         val db = this.writableDatabase
-        val sd = DatabaseUtils.longForQuery(db.compileStatement("SELECT COUNT(*) FROM $TABLE_IMAGES as count"), null)
-        Log.d("asdcur", sd.toString())
-        db?.insert(TABLE_IMAGES, null, values)
+        db?.replace(TABLE_IMAGES, null, values)
     }
 
     fun deleteImage(imageId: Int){
         val db = writableDatabase
-        db.delete(TABLE_IMAGES,"$COLUMN_IMAGES=?", arrayOf(imageId.toString()))
-    }
-
-    private fun validateIfTableHasData(myDatabase: SQLiteDatabase, tableName: String): Boolean {
-        val c = myDatabase.rawQuery("SELECT * FROM $tableName", null)
-        return c.moveToFirst()
+        val res = db.delete(TABLE_IMAGES, "$COLUMN_ID=?", arrayOf(imageId.toString()))
+        Log.d("asddelres", res.toString())
     }
 
     fun getAllImages(): Cursor? {
@@ -55,6 +52,7 @@ class DBHelper(context: Context, factory: SQLiteDatabase.CursorFactory?) :
         private val DATABASE_NAME = "images.db"
         val TABLE_IMAGES = "images"
         val COLUMN_ID = "_id"
+        val COLUMN_UNIQUE_IMAGE_ID = "image_unique_id"
         val COLUMN_IMAGES = "image"
     }
 }
