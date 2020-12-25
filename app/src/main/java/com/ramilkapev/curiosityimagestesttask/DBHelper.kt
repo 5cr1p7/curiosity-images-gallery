@@ -3,20 +3,18 @@ package com.ramilkapev.curiosityimagestesttask
 import android.content.ContentValues
 import android.content.Context
 import android.database.Cursor
-import android.database.DatabaseUtils
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
 import android.util.Log
 
 class DBHelper(context: Context, factory: SQLiteDatabase.CursorFactory?) :
-    SQLiteOpenHelper(context, DATABASE_NAME, factory, DATABASE_VERSION) {
+    SQLiteOpenHelper(context, DATABASE_NAME, factory, DATABASE_VERSION), DBView {
     override fun onCreate(db: SQLiteDatabase) {
         val createImagesTable = ("CREATE TABLE " +
                 TABLE_IMAGES + "("
-                + COLUMN_ID + " INTEGER PRIMARY KEY AUTOINCREMENT UNIQUE,"
+                + COLUMN_ID + " INTEGER PRIMARY KEY,"
                 + COLUMN_UNIQUE_IMAGE_ID + " INTEGER UNIQUE,"
-                + COLUMN_IMAGES
-                + " TEXT" + ")")
+                + COLUMN_IMAGES + " TEXT" + ")")
         db.execSQL(createImagesTable)
     }
 
@@ -27,24 +25,23 @@ class DBHelper(context: Context, factory: SQLiteDatabase.CursorFactory?) :
         }
     }
 
-    fun addImage(model: ImagesModel) {
+    override fun addImage(model: ImagesModel) {
         val values = ContentValues()
         values.put(COLUMN_IMAGES, model.download_url)
         values.put(COLUMN_UNIQUE_IMAGE_ID, model.id)
-//        values.put(COLUMN_ID, pos)
         val db = this.writableDatabase
-        db?.replace(TABLE_IMAGES, null, values)
+        db?.insertWithOnConflict(TABLE_IMAGES, null, values, SQLiteDatabase.CONFLICT_IGNORE)
     }
 
-    fun deleteImage(imageId: Int){
-        val db = writableDatabase
-        val res = db.delete(TABLE_IMAGES, "$COLUMN_ID=?", arrayOf(imageId.toString()))
-        Log.d("asddelres", res.toString())
-    }
-
-    fun getAllImages(): Cursor? {
+    override fun getAllImages(): Cursor? {
         val db = this.readableDatabase
         return db.rawQuery("SELECT * FROM $TABLE_IMAGES", null)
+    }
+
+    override fun deleteImage(imageId: Int) {
+        val db = this.writableDatabase
+        val res = db.delete(TABLE_IMAGES, "$COLUMN_ID=?", arrayOf(imageId.toString()))
+        Log.d("asddelres", res.toString())
     }
 
     companion object {

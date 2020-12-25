@@ -15,7 +15,7 @@ class HttpHandler {
     fun apiRequest(dbHelper: DBHelper) {
 
         val request = Request.Builder()
-            .url("https://picsum.photos/v2/list?page=1&limit=20")
+            .url(url)
             .build()
 
         client.newCall(request).enqueue(object : Callback {
@@ -33,11 +33,13 @@ class HttpHandler {
 
                     for (i in imagesList) {
                         dbHelper.addImage(i)
-                        Log.d("asd1", imagesList.size.toString())
                     }
-                    Log.d("asd12", imagesList.toString())
                 }
             }
         })
+    }
+
+    companion object {
+        const val url = "https://picsum.photos/v2/list?page=1&limit=20"
     }
 }

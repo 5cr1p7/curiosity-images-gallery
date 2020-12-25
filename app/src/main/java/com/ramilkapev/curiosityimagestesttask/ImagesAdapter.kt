@@ -26,8 +26,6 @@ class ImagesAdapter(private val context: Context,
 
     override fun onBindViewHolder(holder: ImagesAdapter.ViewHolder, position: Int) {
         holder.bindImages(imagesList[position], position + 1)
-        Log.d("asdada1", imagesList.size.toString())
-        Log.d("asdada", imagesList[position])
     }
 
     override fun getItemCount() = imagesList.size
@@ -56,8 +54,6 @@ class ImagesAdapter(private val context: Context,
             imageView.setOnLongClickListener {
                 DBHelper(context, null).deleteImage(position)
                 deleteItem(adapterPosition)
-                Log.d("asd2", imagesList.size.toString())
-                Log.d("asd21", imagesList.toString())
                 return@setOnLongClickListener true
             }
         }

@@ -1,12 +1,14 @@
 package com.ramilkapev.curiosityimagestesttask
 
+import android.database.Cursor
+import android.database.sqlite.SQLiteDatabase
 import android.os.Bundle
 import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.RecyclerView
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.google.android.flexbox.*
 import com.ramilkapev.curiosityimagestesttask.Http.HttpHandler
-
 
 class MainActivity : AppCompatActivity() {
 
@@ -17,21 +19,21 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
+        val swipeContainer: SwipeRefreshLayout = findViewById(R.id.swipe_container)
+        val recyclerView: RecyclerView = findViewById(R.id.rv_images)
+
         val httpHandler = HttpHandler()
 
         httpHandler.apiRequest(dbHelper)
+
         val cursor = dbHelper.getAllImages()
+        getImagesFromDB(cursor!!)
 
-        cursor!!.moveToFirst()
-            while (cursor.moveToNext()) {
-                val values = cursor.getString(cursor.getColumnIndex(DBHelper.COLUMN_IMAGES))
-                imageUrlList.add(values)
-            }
-        Log.d("asdmaincurs", imageUrlList.size.toString())
-        cursor.close()
-        dbHelper.close()
-
-        val recyclerView: RecyclerView = findViewById(R.id.rv_images)
+        swipeContainer.setOnRefreshListener {
+            httpHandler.apiRequest(dbHelper)
+            getImagesFromDB(cursor!!)
+            swipeContainer.isRefreshing = false
+        }
 
         val flexLayoutManager = FlexboxLayoutManager(this).apply {
             flexWrap = FlexWrap.WRAP
@@ -41,10 +43,20 @@ class MainActivity : AppCompatActivity() {
 
         val flexAdapter = ImagesAdapter(this, imageUrlList)
         recyclerView.apply {
-            setHasFixedSize(true)
             layoutManager = flexLayoutManager
             adapter = flexAdapter
+            setHasFixedSize(true)
         }
+    }
+
+    fun getImagesFromDB(cursor: Cursor) {
+        if (cursor!!.moveToFirst() && imageUrlList.isEmpty()) {
+            while (cursor.moveToNext()) {
+                val values = cursor.getString(cursor.getColumnIndex(DBHelper.COLUMN_IMAGES))
+                imageUrlList.add(values)
+            }
+        }
+        dbHelper.close()
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
